@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const TO_EMAILS = ["tbaxter941@gmail.com", "brody@baxterindustries.org"];
+// Temporarily sending only to tbaxter941@gmail.com.
+// brody@baxterindustries.org removed for now — re-add when ready.
+const TO_EMAILS = ["tbaxter941@gmail.com"];
 
 export async function POST(request: Request) {
   let data: {
