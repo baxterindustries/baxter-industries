@@ -70,17 +70,18 @@ export default function Home() {
         {/* 2. Hero */}
         <Reveal>
           <section className="hero">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/hero.jpg"
+              alt="Baxter Industries remodeling project"
+              className="hero-bg"
+            />
             <div className="container">
               <h1>Maintenance &amp; remodeling, done right</h1>
               <p>Serving New England homes &amp; businesses</p>
               <a href="#quote" className="btn btn-orange">
                 Request your free quote
               </a>
-              <div className="hero-image">
-                <div className="placeholder placeholder-hero">
-                  Hero image placeholder
-                </div>
-              </div>
             </div>
           </section>
         </Reveal>
@@ -120,9 +121,12 @@ export default function Home() {
                 </div>
                 <div className="ba-item">
                   <div className="ba-label">After</div>
-                  <div className="placeholder placeholder-ba">
-                    Kitchen — after photo
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/crew.jpg"
+                    alt="Baxter Industries crew at work"
+                    className="photo photo-ba"
+                  />
                 </div>
               </div>
             </div>
