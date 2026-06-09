@@ -42,12 +42,12 @@ const reviews = [
     author: "Sarah M.",
   },
   {
-    rating: 4.5,
+    rating: 5.0,
     quote: "Fast, professional, and honest pricing. Highly recommend Baxter.",
     author: "Mike T.",
   },
   {
-    rating: 4.0,
+    rating: 5.0,
     quote: "Great work on our rental units. Quick turnaround between tenants.",
     author: "Dave R.",
   },
