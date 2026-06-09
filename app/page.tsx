@@ -121,15 +121,21 @@ export default function Home() {
               <div className="ba-grid">
                 <div className="ba-item">
                   <div className="ba-label">Before</div>
-                  <div className="placeholder placeholder-ba">
-                    Kitchen — before photo
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/kitchen-before.png"
+                    alt="Kitchen before remodel"
+                    className="photo photo-ba"
+                  />
                 </div>
                 <div className="ba-item">
                   <div className="ba-label">After</div>
-                  <div className="placeholder placeholder-ba">
-                    Kitchen — after photo
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/kitchen-after.png"
+                    alt="Kitchen after remodel"
+                    className="photo photo-ba"
+                  />
                 </div>
               </div>
             </div>
@@ -145,15 +151,21 @@ export default function Home() {
               <div className="ba-grid">
                 <div className="ba-item">
                   <div className="ba-label">Before</div>
-                  <div className="placeholder placeholder-ba">
-                    Bathroom — before photo
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/bathroom-before.png"
+                    alt="Bathroom before remodel"
+                    className="photo photo-ba"
+                  />
                 </div>
                 <div className="ba-item">
                   <div className="ba-label">After</div>
-                  <div className="placeholder placeholder-ba">
-                    Bathroom — after photo
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/bathroom-after.png"
+                    alt="Bathroom after remodel"
+                    className="photo photo-ba"
+                  />
                 </div>
               </div>
             </div>
