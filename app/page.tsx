@@ -90,6 +90,12 @@ export default function Home() {
         <Reveal>
           <section className="section section-white">
             <div className="container">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/crew.jpg"
+                alt="The Baxter Industries crew at work"
+                className="photo banner"
+              />
               <h2 className="section-title">Our services</h2>
               <div className="services-grid">
                 {services.map((s) => (
@@ -121,12 +127,9 @@ export default function Home() {
                 </div>
                 <div className="ba-item">
                   <div className="ba-label">After</div>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/crew.jpg"
-                    alt="Baxter Industries crew at work"
-                    className="photo photo-ba"
-                  />
+                  <div className="placeholder placeholder-ba">
+                    Kitchen — after photo
+                  </div>
                 </div>
               </div>
             </div>

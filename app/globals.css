@@ -281,6 +281,21 @@ a {
   aspect-ratio: 4 / 3;
 }
 
+/* Full-width banner strip (e.g. above the services heading) */
+.banner {
+  height: 340px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  margin-bottom: 56px;
+}
+
+@media (max-width: 640px) {
+  .banner {
+    height: 220px;
+    margin-bottom: 40px;
+  }
+}
+
 /* ---------- Placeholder boxes ---------- */
 .placeholder {
   width: 100%;
