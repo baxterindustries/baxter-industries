@@ -23,6 +23,14 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        {/* Enable scroll-reveal only when JS runs, before paint, so content
+            stays visible with JS disabled. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.documentElement.classList.add('reveal-enabled');",
+          }}
+        />
       </head>
       <body>{children}</body>
     </html>
