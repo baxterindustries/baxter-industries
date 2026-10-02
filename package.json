@@ -6,18 +6,25 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "test": "node --test worker/*.test.mjs",
+    "build:workers": "node tools/build-workers.mjs production",
+    "build:workers:preview": "node tools/build-workers.mjs preview",
+    "workers:dev": "wrangler dev --env production",
+    "workers:dev:preview": "wrangler dev --env preview",
+    "workers:deploy:production": "wrangler deploy --env production",
+    "workers:deploy:preview": "wrangler deploy --env preview",
+    "workers:check:production": "node tools/check-production-worker.mjs"
   },
   "dependencies": {
     "next": "^16.2.7",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "resend": "4.1.2"
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "wrangler": "4.145.0"
   }
 }

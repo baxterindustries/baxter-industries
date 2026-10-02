@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const preview = process.env.BAXTER_DEPLOY_ENV === "preview";
+
 export const metadata: Metadata = {
   title: "Baxter Industries — Property Maintenance & Remodeling in New Hampshire",
   description:
     "Baxter Industries provides maintenance, cleaning, carpentry, and full unit renovations for New Hampshire homes & businesses. Request your free quote today.",
+  robots: preview ? { index: false, follow: false } : undefined,
 };
 
 export default function RootLayout({
@@ -32,7 +35,15 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {preview && (
+          <div className="preview-notice">
+            Preview site. Quote submissions are tests and won&apos;t email Baxter
+            Industries. Please use sample details.
+          </div>
+        )}
+        {children}
+      </body>
     </html>
   );
 }

@@ -61,6 +61,14 @@ a {
   text-decoration: none;
 }
 
+.preview-notice {
+  background: var(--cream);
+  color: var(--blue-dark);
+  padding: 12px 24px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 .container {
   width: 100%;
   max-width: var(--max-width);

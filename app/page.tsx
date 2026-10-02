@@ -54,6 +54,7 @@ const reviews = [
 ];
 
 export default function Home() {
+  const preview = process.env.BAXTER_DEPLOY_ENV === "preview";
   return (
     <>
       {/* 1. Header */}
@@ -196,7 +197,9 @@ export default function Home() {
             <div className="container quote-wrap">
               <h2 className="section-title">Request a free quote</h2>
               <p className="section-subtitle">
-                Tell us what you need — we&apos;ll get right back to you
+                {preview
+                  ? "Try the form with sample details. This preview won't send a request."
+                  : <>Tell us what you need — we&apos;ll get right back to you</>}
               </p>
               <QuoteForm />
             </div>

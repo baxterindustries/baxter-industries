@@ -7,6 +7,7 @@ type Status = "idle" | "submitting" | "success" | "error";
 export default function QuoteForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [previewSuccess, setPreviewSuccess] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,6 +34,11 @@ export default function QuoteForm() {
         throw new Error(body.error || "Something went wrong.");
       }
 
+      const body = await res.json();
+      if (body.ok !== true) {
+        throw new Error("Something went wrong. Please try again.");
+      }
+      setPreviewSuccess(body.preview === true);
       setStatus("success");
       form.reset();
     } catch (err) {
@@ -79,14 +85,17 @@ export default function QuoteForm() {
       </div>
 
       {status === "success" && (
-        <div className="form-status success">
-          🎉 Thanks! Your request is on its way — we&apos;ll get right back to
-          you.
+        <div className="form-status success" role="status">
+          {previewSuccess ? (
+            <>Preview test complete. No email was sent and your details were not saved.</>
+          ) : (
+            <>🎉 Thanks! Your request is on its way — we&apos;ll get right back to you.</>
+          )}
         </div>
       )}
 
       {status === "error" && (
-        <div className="form-status error">
+        <div className="form-status error" role="alert">
           😕 {errorMsg || "Couldn't send your request."} Please try again or
           call us.
         </div>

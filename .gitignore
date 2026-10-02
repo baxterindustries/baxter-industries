@@ -22,3 +22,10 @@ npm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloudflare builds and local secrets
+/.workers-assets/
+/.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
