@@ -16,7 +16,7 @@
     "workers:check:production": "node tools/check-production-worker.mjs"
   },
   "dependencies": {
-    "next": "^16.2.7",
+    "next": "16.4.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

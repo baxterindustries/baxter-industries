@@ -2,6 +2,8 @@
 
 The one-page marketing site uses Next.js, TypeScript and plain CSS. Vercel remains supported while Cloudflare hosting is prepared. The Cloudflare configuration contains no custom-domain routes or DNS changes.
 
+See [Security maintenance](SECURITY.md) for the current framework security update, validation evidence, and the remaining Baxter hardening opportunities.
+
 ## Local development and Vercel
 
 Run `npm ci`, then `npm run dev`. Set a server-side `RESEND_API_KEY` in `.env.local` only when email delivery is needed. To run the normal production server, use `npm run build` followed by `npm start`; this includes the Next `/api/quote` handler. Vercel uses the same normal build and its existing environment settings.
