@@ -66,12 +66,12 @@ Validated locally with Node **24.19.0** and npm **11.10.1**:
 | `npm ls next react react-dom sharp --all` | Next 16.4.2, React/React DOM 19.2.7 and production sharp 0.35.5; separate development sharp 0.35.4 noted below. |
 | `npm audit --omit=dev --json` / `npm audit --json` | Zero production findings; three high development-chain findings, documented below. |
 
-The framework update is ready for release review with these local checks; it
-has not been pushed or deployed. Production still served 16.3.8 at the live
-observation above. Local no-send checks and mocked provider tests do not prove
-real email delivery. A separately authorized release must verify the deployed
-version, the live root/assets and quote rejection paths; coordinate any real
-delivery test separately.
+The framework update passed these local checks. The live 16.3.8 version above
+is the pre-update observation; consult current deployment records for release
+status. Local no-send checks and mocked provider tests do not prove real email
+delivery. A production release must verify the deployed version, the live
+root/assets and quote rejection paths; coordinate any real delivery test
+separately.
 
 Both the normal Next/Vercel build and the
 `BAXTER_HOSTING_TARGET=cloudflare` static export remain supported. The latter
