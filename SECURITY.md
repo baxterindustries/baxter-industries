@@ -47,8 +47,9 @@ read-only.
 
 Industries uses Next.js and Capital uses a static browser application with
 server API handlers and Supabase. No PHP source was found in either inspected
-application tree. No hosting migration, DNS change, database change, production
-deployment, or real quote email is part of this update.
+application tree. These are pre-update snapshots. Dependency releases use the
+existing Vercel and Cloudflare candidate paths; they require no hosting
+migration, DNS change, database change, or real quote email.
 
 ### Validation and release status
 
@@ -63,8 +64,8 @@ Validated locally with Node **24.19.0** and npm **11.10.1**:
 | `npm run build:workers:preview` | Preview static export and asset checks pass, including notice, noindex, and robots behavior. |
 | Production server, `QUOTE_DELIVERY_MODE=preview` | Root, linked JS/CSS and public image return 200; absent page returns 404. Six quote HTTP checks pass: GET 405, non-JSON 415, malformed JSON 400, missing fields 400, oversized body 413, valid no-send submission 200. Application JSON responses retain no-store/noindex headers. |
 | Browser on the production server | Form hydrates, submits sample fields, resets, and displays explicit no-email/no-storage success. No browser console warnings/errors observed. |
-| `npm ls next react react-dom sharp --all` | Next 16.4.2, React/React DOM 19.2.7 and production sharp 0.35.5; separate development sharp 0.35.4 noted below. |
-| `npm audit --omit=dev --json` / `npm audit --json` | Zero production findings; three high development-chain findings, documented below. |
+| `npm ls next react react-dom sharp --all` | Next 16.4.2, React/React DOM 19.2.7 and sharp 0.35.5. The subsequent toolchain update below removes the older development-only sharp copy. |
+| Initial Next-only update: `npm audit --omit=dev --json` / `npm audit --json` | Zero production findings; three high development-chain findings. The subsequent toolchain update below resolves that chain. |
 
 The framework update passed these local checks. The live 16.3.8 version above
 is the pre-update observation; consult current deployment records for release
@@ -78,29 +79,27 @@ Both the normal Next/Vercel build and the
 excludes the Next `.ts` API adapter and uses the existing shared Worker quote
 service. The final local build is the normal Next build, ready for `npm start`.
 
+## Implemented Cloudflare development toolchain update
+
+Both repositories now pin **Wrangler 4.151.3**, replacing 4.145.0. Its vendor-pinned
+dependencies resolve to **Miniflare 5.20261019.1-beta** and
+**workerd 1.20261019.1**. All sharp copies in both lockfiles now resolve to
+**0.35.5**, meeting the
+[sharp maintainer advisory](https://github.com/lovell/sharp/security/advisories/GHSA-wq5f-xc86-pv6w).
+Industries deduplicates Miniflare's sharp to the already-patched production
+copy; Capital's sharp remains development-only. No dependency override or new
+direct Miniflare/sharp dependency is needed.
+
+The original three high npm audit findings represented one dependency chain
+(`sharp` -> `miniflare` -> `wrangler`), rather than three independent defects.
+The upgraded installs report **zero vulnerabilities**, including development
+dependencies. This resolves the P1 dependency finding; it does not claim a
+broader application security audit.
+
 ## Remaining opportunities (documented, not implemented)
 
-Priority: P1 = prompt maintenance of a known affected dependency; P2 = planned
-defense in depth or closure of an evidence gap. These are priorities for follow-up,
-not assertions of active compromise.
-
-### P1 - Update the Cloudflare development toolchain
-
-**Surface/evidence:** Both source lockfiles select Wrangler 4.145.0 and Miniflare
-5.20260930.0-alpha with a development-only sharp 0.35.4. Industries' full
-`npm audit --json` reports three high findings along this single dependency
-chain (`sharp` -> `miniflare` -> `wrangler`), while `npm audit --omit=dev --json`
-reports zero. Industries has a separate patched production sharp 0.35.5 under
-Next. Capital's sharp is development-only.
-
-**Recommendation:** Update Wrangler in each repository in a separate change;
-the current audit proposes 4.151.3. Recheck the then-current supported version,
-verify all sharp copies resolve to 0.35.5 or newer, and run existing Worker tests,
-both asset builds, and production/preview packaging dry runs. Avoid exposing a
-development emulator to untrusted traffic. This is a confirmed affected package
-in development tooling, not proof that either live site serves the vulnerable
-image-processing path. See the
-[sharp maintainer advisory](https://github.com/lovell/sharp/security/advisories/GHSA-wq5f-xc86-pv6w).
+The remaining items are P2: planned defense in depth or closure of an evidence
+gap. These are priorities for follow-up, not assertions of active compromise.
 
 ### P2 - Make the Capital browser SDK delivery reproducible
 
