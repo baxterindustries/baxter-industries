@@ -57,7 +57,7 @@ Validated locally with Node **24.19.0** and npm **11.10.1**:
 | Check | Result |
 | --- | --- |
 | `npm ci --no-fund` | Successful clean install from the updated lockfile. |
-| `npm test` | All 17 tests pass: routing, bounded input, no-send preview, provider fixtures, sanitization, and readiness behavior. |
+| `npm test` | All 19 tests pass: routing, bounded input, no-send preview, provider fixtures, sanitization, and readiness behavior, including independently stale navigation assets and exported HTTP 404 assets. |
 | `npm run build` | Next 16.4.2 compilation and TypeScript checks pass; `/` is static and `/api/quote` remains dynamic. |
 | `npm run build:workers` | Production static export and asset checks pass; six public image files match their source bytes, no server/payment files exported, correct indexing/header rules. |
 | `npm run build:workers:preview` | Preview static export and asset checks pass, including notice, noindex, and robots behavior. |

@@ -5,14 +5,15 @@ import { pathToFileURL } from "node:url";
 
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
-// The public hostname can briefly serve the previous deployment after Wrangler
-// reports success. Wait for this build's root before the strict asset/API proof.
-export async function waitForCurrentRoot(url, expectedHash, {
+// Assets can settle independently after Wrangler reports success. A current
+// root does not prove that the generated navigation payloads are current too.
+export async function waitForCurrentAsset(url, expectedHash, {
   fetchImpl = fetch,
   now = Date.now,
   pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   timeoutMs = 45000,
   intervalMs = 5000,
+  expectedStatuses = [200],
 } = {}) {
   const deadline = now() + timeoutMs;
   let last = { status: null, url: url.href, sha256: null };
@@ -28,14 +29,14 @@ export async function waitForCurrentRoot(url, expectedHash, {
         url: response.url || url.href,
         sha256: hash(new Uint8Array(await response.arrayBuffer())),
       };
-      if (last.status === 200 && last.sha256 === expectedHash) return { attempts };
+      if (expectedStatuses.includes(last.status) && last.sha256 === expectedHash) return { attempts, response };
     } catch {
       last = { status: null, url: url.href, sha256: null };
     }
     const remaining = deadline - now();
     if (remaining > 0) await pause(Math.min(intervalMs, remaining));
   }
-  throw new Error(`Production root did not reach the built asset within ${timeoutMs}ms: ${JSON.stringify({ ...last, expectedSha256: expectedHash, attempts })}`);
+  throw new Error(`Production asset did not reach the built bytes within ${timeoutMs}ms: ${JSON.stringify({ ...last, expectedSha256: expectedHash, attempts })}`);
 }
 
 async function files(directory) {
@@ -50,17 +51,18 @@ export async function checkProductionWorker() {
   assert.equal(base.protocol, "https:");
   assert.ok(base.hostname.endsWith(".workers.dev"), "This check targets the production workers.dev candidate.");
   const output = new URL("../.workers-assets/production/", import.meta.url);
-  const readiness = await waitForCurrentRoot(new URL("/", base), hash(await readFile(new URL("index.html", output))));
+  let readinessAttempts = 0;
   let matchedAssets = 0;
   for (const local of await files(output)) {
     const relative = local.href.slice(output.href.length);
     if (relative === "_headers") continue;
     const url = new URL(relative === "index.html" ? "/" : relative, base);
-    const response = await fetch(url);
-    assert.ok(response.status === 200 || (relative === "404.html" && response.status === 404), `Asset status mismatch: ${relative}`);
+    const { response, attempts } = await waitForCurrentAsset(url, hash(await readFile(local)), {
+      expectedStatuses: relative === "404.html" ? [200, 404] : [200],
+    });
+    readinessAttempts += attempts;
     assert.match(response.headers.get("X-Robots-Tag") || "", /noindex/, `Missing staging noindex: ${relative}`);
     assert.equal(response.headers.get("Strict-Transport-Security"), "max-age=63072000", `Missing HSTS: ${relative}`);
-    assert.equal(hash(new Uint8Array(await response.arrayBuffer())), hash(await readFile(local)), `Deployed asset mismatch: ${relative}`);
     matchedAssets++;
   }
   const quoteUrl = new URL("/api/quote", base);
@@ -78,7 +80,7 @@ export async function checkProductionWorker() {
   for (const path of ["/.env", "/worker/quote.mjs", "/app/api/quote/route.ts", "/README.md", "/package.json"]) {
     assert.equal((await fetch(new URL(path, base))).status, 404, `Private source path is exposed: ${path}`);
   }
-  console.log(JSON.stringify({ host: base.hostname, readinessAttempts: readiness.attempts, matchedAssets, getQuote: 405, malformedQuote: 400, unknownApi: 404, workersDevNoindex: true, privateFilesMissing: true, validQuotePosts: 0 }));
+  console.log(JSON.stringify({ host: base.hostname, readinessAttempts, matchedAssets, getQuote: 405, malformedQuote: 400, unknownApi: 404, workersDevNoindex: true, privateFilesMissing: true, validQuotePosts: 0 }));
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {

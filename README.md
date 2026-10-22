@@ -23,7 +23,7 @@ Generated output and local secrets are ignored by Git. Each export starts from c
 
 Production custom-domain assets remain indexable. The native `_headers` host rule marks production `workers.dev` responses noindex without invoking the Worker for static assets; preview assets are always noindex. APIs are noindex and no-store. HSTS preserves the existing `max-age=63072000` policy. Public HTTP API requests redirect to HTTPS with status 308; Cloudflare's zone-level Always Use HTTPS setting handles static requests when the domain is cut over. The official [static asset headers documentation](https://developers.cloudflare.com/workers/static-assets/headers/) describes the host rule.
 
-The GitHub deployment workflow runs the production deploy followed by `npm run workers:check:production`. This check compares deployed asset hashes to the freshly built local output, checks headers, API errors and absent private files. Its only POST is malformed JSON, which cannot send email. `BAXTER_WORKER_BASE_URL` may select another HTTPS production `workers.dev` candidate; the default is `https://baxter-industries-production.brody-775.workers.dev/`.
+The GitHub deployment workflow runs the production deploy followed by `npm run workers:check:production`. This check waits up to 45 seconds per asset for the freshly built bytes, since the root and navigation payloads can propagate independently, then checks headers, API errors and absent private files. Its only POST is malformed JSON, which cannot send email. `BAXTER_WORKER_BASE_URL` may select another HTTPS production `workers.dev` candidate; the default is `https://baxter-industries-production.brody-775.workers.dev/`.
 
 ## Quote delivery
 
