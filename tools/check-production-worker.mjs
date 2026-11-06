@@ -78,7 +78,10 @@ export async function checkProductionWorker({ canonical = false } = {}) {
   for (const local of await files(output)) {
     const relative = local.href.slice(output.href.length);
     if (relative === "_headers") continue;
-    const url = new URL(relative === "index.html" ? "/" : relative, base);
+    // Cloudflare redirects .html requests to their extensionless public URLs.
+    // Check those bytes directly while continuing to reject unexpected redirects.
+    const publicPath = relative === "index.html" ? "/" : relative.replace(/\.html$/, "");
+    const url = new URL(publicPath, base);
     const { response, attempts } = await waitForCurrentAsset(url, hash(await readFile(local)), {
       expectedStatuses: relative === "404.html" ? [200, 404] : [200],
     });
