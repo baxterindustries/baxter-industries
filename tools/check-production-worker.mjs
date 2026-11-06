@@ -22,6 +22,7 @@ export async function waitForCurrentAsset(url, expectedHash, {
     attempts++;
     try {
       const response = await fetchImpl(url, {
+        redirect: "manual",
         signal: AbortSignal.timeout(Math.max(1, deadline - now())),
       });
       last = {
@@ -46,10 +47,31 @@ async function files(directory) {
   }))).flat();
 }
 
-export async function checkProductionWorker() {
-  const base = new URL(process.env.BAXTER_WORKER_BASE_URL || "https://baxter-industries-production.brody-775.workers.dev/");
+export function checkResponseHeaders(response, { canonical = false, api = false, path = "/" } = {}) {
+  assert.equal(response.headers.get("Server")?.toLowerCase(), "cloudflare", `Response is not served by Cloudflare: ${path}`);
+  assert.ok(response.headers.get("CF-Ray"), `Missing Cloudflare request evidence: ${path}`);
+  assert.equal(response.headers.get("Strict-Transport-Security"), "max-age=63072000", `Missing HSTS: ${path}`);
+  const robots = response.headers.get("X-Robots-Tag") || "";
+  if (api || !canonical) {
+    assert.match(robots, /noindex/i, `Missing noindex: ${path}`);
+  } else {
+    assert.doesNotMatch(robots, /noindex/i, `Canonical asset must remain indexable: ${path}`);
+  }
+  if (api) assert.equal(response.headers.get("Cache-Control"), "no-store", `API response must not be cached: ${path}`);
+}
+
+export async function checkProductionWorker({ canonical = false } = {}) {
+  const base = new URL(process.env.BAXTER_WORKER_BASE_URL || (canonical
+    ? "https://baxter-industries.com/"
+    : "https://baxter-industries-production.brody-775.workers.dev/"));
   assert.equal(base.protocol, "https:");
-  assert.ok(base.hostname.endsWith(".workers.dev"), "This check targets the production workers.dev candidate.");
+  assert.equal(base.pathname, "/");
+  assert.equal(base.search, "");
+  if (canonical) {
+    assert.equal(base.host, "baxter-industries.com", "Canonical checks target the production apex domain.");
+  } else {
+    assert.ok(base.hostname.endsWith(".workers.dev"), "Candidate checks target a production workers.dev host.");
+  }
   const output = new URL("../.workers-assets/production/", import.meta.url);
   let readinessAttempts = 0;
   let matchedAssets = 0;
@@ -61,28 +83,42 @@ export async function checkProductionWorker() {
       expectedStatuses: relative === "404.html" ? [200, 404] : [200],
     });
     readinessAttempts += attempts;
-    assert.match(response.headers.get("X-Robots-Tag") || "", /noindex/, `Missing staging noindex: ${relative}`);
-    assert.equal(response.headers.get("Strict-Transport-Security"), "max-age=63072000", `Missing HSTS: ${relative}`);
+    checkResponseHeaders(response, { canonical, path: relative });
     matchedAssets++;
   }
+  const request = (url, options = {}) => fetch(url, {
+    ...options, redirect: "manual", signal: AbortSignal.timeout(15000),
+  });
   const quoteUrl = new URL("/api/quote", base);
-  const method = await fetch(quoteUrl);
+  const method = await request(quoteUrl);
   assert.equal(method.status, 405);
   assert.equal(method.headers.get("Allow"), "POST");
-  assert.equal(method.headers.get("Strict-Transport-Security"), "max-age=63072000");
-  assert.equal((await fetch(quoteUrl, {
+  checkResponseHeaders(method, { canonical, api: true, path: quoteUrl.pathname });
+  const malformed = await request(quoteUrl, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: "{",
-  })).status, 400); // Deliberately invalid; cannot reach the email provider.
-  const unknown = await fetch(new URL("/api/unknown", base));
+  });
+  assert.equal(malformed.status, 400); // Deliberately invalid; cannot reach the email provider.
+  checkResponseHeaders(malformed, { canonical, api: true, path: quoteUrl.pathname });
+  const unknown = await request(new URL("/api/unknown", base));
   assert.equal(unknown.status, 404);
+  checkResponseHeaders(unknown, { canonical, api: true, path: "/api/unknown" });
   assert.match(unknown.headers.get("Content-Type") || "", /application\/json/);
   assert.deepEqual(await unknown.json(), { error: "Not found." });
   for (const path of ["/.env", "/worker/quote.mjs", "/app/api/quote/route.ts", "/README.md", "/package.json"]) {
-    assert.equal((await fetch(new URL(path, base))).status, 404, `Private source path is exposed: ${path}`);
+    const response = await request(new URL(path, base));
+    assert.equal(response.status, 404, `Private source path is exposed: ${path}`);
+    checkResponseHeaders(response, { canonical, path });
   }
-  console.log(JSON.stringify({ host: base.hostname, readinessAttempts, matchedAssets, getQuote: 405, malformedQuote: 400, unknownApi: 404, workersDevNoindex: true, privateFilesMissing: true, validQuotePosts: 0 }));
+  if (canonical) {
+    const insecure = new URL(base);
+    insecure.protocol = "http:";
+    const redirect = await request(insecure);
+    assert.ok([301, 302, 307, 308].includes(redirect.status), "HTTP must redirect to HTTPS.");
+    assert.equal(redirect.headers.get("Location"), base.href);
+  }
+  console.log(JSON.stringify({ host: base.hostname, canonical, readinessAttempts, matchedAssets, cloudflareResponses: true, getQuote: 405, malformedQuote: 400, unknownApi: 404, indexableAssets: canonical, workersDevNoindex: !canonical, privateFilesMissing: true, validQuotePosts: 0 }));
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  await checkProductionWorker();
+  await checkProductionWorker({ canonical: process.argv.includes("--canonical") });
 }

@@ -9,6 +9,13 @@
     "production": {
       "name": "baxter-industries-production",
       "workers_dev": true,
+      "routes": [
+        {
+          "pattern": "baxter-industries.com",
+          "zone_id": "ed0ff63153d3def3e15c848515eb4330",
+          "custom_domain": true
+        }
+      ],
       "build": { "command": "npm run build:workers" },
       "assets": {
         "directory": "./.workers-assets/production",
@@ -21,6 +28,7 @@
     "preview": {
       "name": "baxter-industries-preview",
       "workers_dev": true,
+      "routes": [],
       "build": { "command": "npm run build:workers:preview" },
       "assets": {
         "directory": "./.workers-assets/preview",

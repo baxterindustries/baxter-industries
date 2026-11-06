@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { waitForCurrentAsset } from "../tools/check-production-worker.mjs";
+import { checkResponseHeaders, waitForCurrentAsset } from "../tools/check-production-worker.mjs";
 
 const root = new URL("https://candidate.example.workers.dev/");
 const expected = createHash("sha256").update("current build").digest("hex");
@@ -83,4 +83,32 @@ test("the exported not-found asset can match with HTTP 404", async () => {
   });
   assert.equal(result.attempts, 1);
   assert.equal(result.response.status, 404);
+});
+
+const cloudflareHeaders = {
+  Server: "cloudflare",
+  "CF-Ray": "abc123-IAD",
+  "Strict-Transport-Security": "max-age=63072000",
+};
+
+test("canonical checks reject Vercel and missing Cloudflare request evidence", () => {
+  for (const headers of [
+    { ...cloudflareHeaders, Server: "Vercel" },
+    { Server: "cloudflare", "Strict-Transport-Security": "max-age=63072000" },
+  ]) {
+    assert.throws(() => checkResponseHeaders(new Response("current build", { headers }), { canonical: true }));
+  }
+  assert.doesNotThrow(() => checkResponseHeaders(new Response("current build", { headers: cloudflareHeaders }), { canonical: true }));
+});
+
+test("canonical assets stay indexable while candidate assets and APIs stay noindex", () => {
+  const indexed = new Response("current build", { headers: cloudflareHeaders });
+  const noindex = new Response("current build", { headers: { ...cloudflareHeaders, "X-Robots-Tag": "noindex, nofollow" } });
+  assert.doesNotThrow(() => checkResponseHeaders(indexed, { canonical: true }));
+  assert.throws(() => checkResponseHeaders(noindex, { canonical: true }));
+  assert.throws(() => checkResponseHeaders(indexed));
+  assert.doesNotThrow(() => checkResponseHeaders(noindex));
+  assert.throws(() => checkResponseHeaders(noindex, { canonical: true, api: true }));
+  const api = new Response("{}", { headers: { ...cloudflareHeaders, "X-Robots-Tag": "noindex", "Cache-Control": "no-store" } });
+  assert.doesNotThrow(() => checkResponseHeaders(api, { canonical: true, api: true }));
 });
